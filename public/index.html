@@ -159,14 +159,6 @@
                     {
                         data: [],
                         backgroundColor: [
-                            '#ffcd56',
-                            '#ff6384',
-                            '#36a2eb',
-                            '#ff6b19',
-                            '#ff0019',
-                            '#ffff19',
-                            '#000020',
-                            '#d20f20'
                         ]
                     }
                 ],
@@ -184,11 +176,9 @@
         function getBudget() {
             axios.get('http://localhost:3000/budget')
             .then(function (res) {
-                for (var i = 0; i < res.data.myBudget.length; i++) {
-                    dataSource.datasets[0].data[i] = res.data.myBudget[i].budget;
-                    dataSource.labels[i] = res.data.myBudget[i].title;
-                    
-                }
+                dataSource.datasets[0].data = res.data.map(item => item.budget);
+                dataSource.labels = res.data.map(item => item.title);
+                dataSource.datasets[0].backgroundColor = res.data.map(item => item.color)
                 createChart();
             });
         }
@@ -207,7 +197,7 @@
         svg.append("g")
             .attr("class", "lines");
 
-        var width = 520,
+        var width = 250,
             height = 120,
             radius = Math.min(width, height) / 2;
 
@@ -231,7 +221,7 @@
 
         var color = d3.scale.ordinal()
             .domain(chartData.map(i => i.name))
-            .range(["#98abc5", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00", "ff2034"]);
+            .range(chartData.map(i => i.color));
 
         function randomData (){
             var labels = color.domain();
@@ -280,7 +270,7 @@
 
             text.enter()
                 .append("text")
-                .attr("dy", ".35em")
+                .attr("dy", ".2em")
                 .text(function(d) {
                     return d.data.label;
                 });
@@ -342,7 +332,14 @@
         function getd3Data(){
             axios.get('http://localhost:3000/getD3Data')
             .then(function (res) {
-                created3Chart(res.data);
+                const transformedData = res.data.map(item => {
+                    return {
+                        name: item.title,
+                        value: item.budget,
+                        color: item.color
+                    };
+                });
+                created3Chart(transformedData);
             });
         }
 
